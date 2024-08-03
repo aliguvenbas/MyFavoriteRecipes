@@ -1,9 +1,17 @@
 package com.ag.myfavoriterecipes.service;
 
+import static com.ag.myfavoriterecipes.repository.RecipeSpecs.includedIngredients;
+import static com.ag.myfavoriterecipes.repository.RecipeSpecs.instructionsLike;
+import static com.ag.myfavoriterecipes.repository.RecipeSpecs.servingsTo;
+import static com.ag.myfavoriterecipes.repository.RecipeSpecs.vegetarian;
+
 import com.ag.myfavoriterecipes.model.Recipe;
 import com.ag.myfavoriterecipes.repository.RecipeRepository;
 import com.ag.myfavoriterecipes.service.exception.RecipeNotFoundException;
+import jakarta.persistence.EntityManager;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -41,9 +49,16 @@ public class RecipeService {
 		return recipeRepository.findAll();
 	}
 
-	public List<Recipe> searchRecipes(Boolean isVegetarian, Integer servings, String includeIngredient, String excludeIngredient,
-									  String instruction) {
-		// Implement search logic using specifications or query methods
-		return null;
+	public List<Recipe> searchRecipes(Boolean isVegetarian, Integer servings, String includeIngredient,
+									  String excludeIngredient, String instruction) {
+		Specification<Recipe> filters =
+				Specification.where(isVegetarian == null ? null : vegetarian(isVegetarian))
+						.and(servings == null ? null : servingsTo(servings))
+						.and(StringUtils.isEmpty(includeIngredient) ? null : includedIngredients(List.of(includeIngredient)))
+//				.and(StringUtils.isEmpty(excludeIngredient) ? null : inCity(cities)) // TODO
+						.and(StringUtils.isEmpty(instruction) ? null : instructionsLike(instruction));
+
+		return recipeRepository.findAll(filters);
+
 	}
 }

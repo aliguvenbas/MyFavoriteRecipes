@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/recipes")
+@RequestMapping("/api/recipes") // TODO naming
 public class RecipeController {
 	private final RecipeService recipeService;
 
@@ -79,7 +79,12 @@ public class RecipeController {
 													  @RequestParam(required = false) String includeIngredient,
 													  @RequestParam(required = false) String excludeIngredient,
 													  @RequestParam(required = false) String instruction) {
-		return ResponseEntity.ok(recipeService.searchRecipes(isVegetarian, servings, includeIngredient, excludeIngredient, instruction));
+		try {
+			return ResponseEntity.ok(
+					recipeService.searchRecipes(isVegetarian, servings, includeIngredient, excludeIngredient, instruction));
+		} catch(Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
 	}
 }
 
