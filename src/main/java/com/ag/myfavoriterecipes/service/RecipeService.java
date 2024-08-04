@@ -2,13 +2,13 @@ package com.ag.myfavoriterecipes.service;
 
 import static com.ag.myfavoriterecipes.repository.RecipeSpecs.includedIngredients;
 import static com.ag.myfavoriterecipes.repository.RecipeSpecs.instructionsLike;
+import static com.ag.myfavoriterecipes.repository.RecipeSpecs.excludedIngredients;
 import static com.ag.myfavoriterecipes.repository.RecipeSpecs.servingsTo;
 import static com.ag.myfavoriterecipes.repository.RecipeSpecs.vegetarian;
 
 import com.ag.myfavoriterecipes.model.Recipe;
 import com.ag.myfavoriterecipes.repository.RecipeRepository;
 import com.ag.myfavoriterecipes.service.exception.RecipeNotFoundException;
-import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -55,7 +55,8 @@ public class RecipeService {
 				Specification.where(isVegetarian == null ? null : vegetarian(isVegetarian))
 						.and(servings == null ? null : servingsTo(servings))
 						.and(StringUtils.isEmpty(includeIngredient) ? null : includedIngredients(List.of(includeIngredient)))
-//				.and(StringUtils.isEmpty(excludeIngredient) ? null : inCity(cities)) // TODO
+						// TODO this is not working
+						.and(StringUtils.isEmpty(excludeIngredient) ? null : excludedIngredients(List.of(excludeIngredient)))
 						.and(StringUtils.isEmpty(instruction) ? null : instructionsLike(instruction));
 
 		return recipeRepository.findAll(filters);

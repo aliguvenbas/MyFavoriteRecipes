@@ -46,7 +46,7 @@ public class RecipeServiceTest {
 	@Test
 	void shouldUpdateRecipe() throws Exception {
 		Recipe recipe = new Recipe();
-		recipe.setId(1L);
+//		recipe.setId(1L);
 		recipe.setName("Updated Recipe");
 
 		when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
@@ -63,7 +63,7 @@ public class RecipeServiceTest {
 	@Test
 	void shouldDeleteRecipe() throws Exception {
 		Recipe recipe = new Recipe();
-		recipe.setId(1L);
+//		recipe.setId(1L);
 
 		when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
 
