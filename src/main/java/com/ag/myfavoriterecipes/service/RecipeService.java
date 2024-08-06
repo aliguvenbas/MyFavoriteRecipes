@@ -4,6 +4,7 @@ import com.ag.myfavoriterecipes.model.Recipe;
 import com.ag.myfavoriterecipes.repository.RecipeRepository;
 import com.ag.myfavoriterecipes.service.exception.NoValidFilterException;
 import com.ag.myfavoriterecipes.service.exception.RecipeNotFoundException;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
+@Transactional
 public class RecipeService {
 	private final RecipeRepository recipeRepository;
 	private final RecipeSpecGenerator recipeSpecGenerator;
