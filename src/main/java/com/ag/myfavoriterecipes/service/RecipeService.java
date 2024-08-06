@@ -6,14 +6,20 @@ import com.ag.myfavoriterecipes.service.exception.NoValidFilterException;
 import com.ag.myfavoriterecipes.service.exception.RecipeNotFoundException;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @Transactional
 public class RecipeService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
+
 	private final RecipeRepository recipeRepository;
 	private final RecipeSpecGenerator recipeSpecGenerator;
 
@@ -26,8 +32,10 @@ public class RecipeService {
 		if(recipe.getId() != null) {
 			throw new IllegalArgumentException("Recipe with an id can not be created");
 		}
+		Recipe savedRecipe = recipeRepository.save(recipe);
+		LOGGER.info("The recipe {} is create", savedRecipe.getName());
 
-		return recipeRepository.save(recipe);
+		return savedRecipe;
 	}
 
 	public synchronized Recipe updateRecipe(Long id, Recipe recipeDetails) {
@@ -38,7 +46,10 @@ public class RecipeService {
 					recipe.setServings(recipeDetails.getServings());
 					recipe.setInstructions(recipeDetails.getInstructions());
 					recipe.setIngredients(recipeDetails.getIngredients());
-					return recipeRepository.save(recipe);
+					Recipe updatedRecipe = recipeRepository.save(recipe);
+
+					LOGGER.info("The recipe {} is updated", updatedRecipe.getName());
+					return updatedRecipe;
 				})
 				.orElseThrow(() -> new RecipeNotFoundException(id));
 	}
@@ -47,6 +58,9 @@ public class RecipeService {
 		Recipe recipe = recipeRepository.findById(id)
 				.orElseThrow(() -> new RecipeNotFoundException(id));
 		recipeRepository.delete(recipe);
+
+		LOGGER.info("The recipe {} is deleted", id);
+
 	}
 
 	public Page<Recipe> getAllRecipes(Pageable pageable) {
