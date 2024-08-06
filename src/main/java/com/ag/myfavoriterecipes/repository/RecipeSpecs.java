@@ -31,7 +31,7 @@ public class RecipeSpecs {
 			Predicate[] predicates = ingredients.stream()
 					.map(ingredient -> builder.notEqual(ingredientsJoin, ingredient))
 					.toArray(Predicate[]::new);
-			return builder.or(predicates);
+			return builder.or(predicates).not();
 		};
 	}
 

@@ -1,8 +1,10 @@
 package com.ag.myfavoriterecipes.controller;
 
+import com.ag.myfavoriterecipes.controller.converter.RecipeDtoConverter;
 import com.ag.myfavoriterecipes.controller.dto.RecipeDto;
 import com.ag.myfavoriterecipes.model.Recipe;
 import com.ag.myfavoriterecipes.service.RecipeService;
+import com.ag.myfavoriterecipes.service.exception.NoValidFilterException;
 import com.ag.myfavoriterecipes.service.exception.RecipeNotFoundException;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,9 +27,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/recipes") // TODO naming
 public class RecipeController {
 	private final RecipeService recipeService;
+	private final RecipeDtoConverter recipeDtoConverter;
 
-	public RecipeController(RecipeService recipeService) {
+	public RecipeController(RecipeService recipeService, RecipeDtoConverter recipeDtoConverter) {
 		this.recipeService = recipeService;
+		this.recipeDtoConverter = recipeDtoConverter;
 	}
 
 	@PostMapping
@@ -35,12 +39,12 @@ public class RecipeController {
 			@ApiResponse(responseCode = "201", content = {@Content(mediaType = "application/json",
 					schema = @Schema(implementation = RecipeDto.class))}),
 			@ApiResponse(responseCode = "500", description = "Server error")})
-	public ResponseEntity<Recipe> createRecipe(@RequestBody RecipeDto recipeDto) {
+	public ResponseEntity<RecipeDto> createRecipe(@RequestBody RecipeDto recipeDto) {
 		try {
-			Recipe recipe = new Recipe(recipeDto.getName(), recipeDto.isVegetarian(), recipeDto.getServings(), recipeDto.getInstructions(),
-					recipeDto.getIngredients());//TODO converter
-			Recipe savedRecipe = recipeService.addRecipe(recipe);
-			return ResponseEntity.status(HttpStatus.CREATED).body(savedRecipe);
+			Recipe savedRecipe = recipeService.addRecipe(recipeDtoConverter.fromDto(recipeDto));
+			return ResponseEntity.status(HttpStatus.CREATED).body(recipeDtoConverter.toDto(savedRecipe));
+		} catch(IllegalArgumentException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		} catch(Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
@@ -54,9 +58,7 @@ public class RecipeController {
 			@ApiResponse(responseCode = "500", description = "Server error")})
 	public ResponseEntity<Recipe> updateRecipe(@PathVariable Long id, @RequestBody RecipeDto recipeDto) {
 		try {
-			Recipe recipe = new Recipe(recipeDto.getName(), recipeDto.isVegetarian(), recipeDto.getServings(), recipeDto.getInstructions(),
-					recipeDto.getIngredients());
-			Recipe updatedRecipe = recipeService.updateRecipe(id, recipe);
+			Recipe updatedRecipe = recipeService.updateRecipe(id, recipeDtoConverter.fromDto(recipeDto));
 
 			// Also it can be return 200, because the vast majority of the applications except 200
 			// if they make some validation or evaluation according to 200(which is not good)
@@ -89,13 +91,18 @@ public class RecipeController {
 		}
 	}
 
+	//TODO pagination
 	@GetMapping
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", content =
 					{@Content(mediaType = "application/json", schema = @Schema(implementation = RecipeDto.class))}),
 			@ApiResponse(responseCode = "500", description = "Server error")})
-	public ResponseEntity<List<Recipe>> getAllRecipes() {
-		return ResponseEntity.ok(recipeService.getAllRecipes());
+	public ResponseEntity<List<RecipeDto>> getAllRecipes() {
+		try {
+			return ResponseEntity.ok(recipeService.getAllRecipes().stream().map(recipeDtoConverter::toDto).toList());
+		} catch(Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
 	}
 
 	@GetMapping("/search")
@@ -103,14 +110,16 @@ public class RecipeController {
 			@ApiResponse(responseCode = "200",
 					content = {@Content(mediaType = "application/json", schema = @Schema(implementation = RecipeDto.class))}),
 			@ApiResponse(responseCode = "500", description = "Server error")})
-	public ResponseEntity<List<Recipe>> searchRecipes(@RequestParam(required = false) Boolean isVegetarian,
+	public ResponseEntity<List<Recipe>> searchRecipes(@RequestParam(required = false) Boolean vegetarian,
 													  @RequestParam(required = false) Integer servings,
 													  @RequestParam(required = false) String includeIngredient,
 													  @RequestParam(required = false) String excludeIngredient,
-													  @RequestParam(required = false) String instruction) {
+													  @RequestParam(required = false) String instructions) {
 		try {
 			return ResponseEntity.ok(
-					recipeService.searchRecipes(isVegetarian, servings, includeIngredient, excludeIngredient, instruction));
+					recipeService.searchRecipes(vegetarian, servings, includeIngredient, excludeIngredient, instructions));
+		}catch(NoValidFilterException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		} catch(Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}

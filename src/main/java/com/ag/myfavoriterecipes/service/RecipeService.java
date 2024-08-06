@@ -1,32 +1,32 @@
 package com.ag.myfavoriterecipes.service;
 
-import static com.ag.myfavoriterecipes.repository.RecipeSpecs.includedIngredients;
-import static com.ag.myfavoriterecipes.repository.RecipeSpecs.instructionsLike;
-import static com.ag.myfavoriterecipes.repository.RecipeSpecs.excludedIngredients;
-import static com.ag.myfavoriterecipes.repository.RecipeSpecs.servingsTo;
-import static com.ag.myfavoriterecipes.repository.RecipeSpecs.vegetarian;
-
 import com.ag.myfavoriterecipes.model.Recipe;
 import com.ag.myfavoriterecipes.repository.RecipeRepository;
+import com.ag.myfavoriterecipes.service.exception.NoValidFilterException;
 import com.ag.myfavoriterecipes.service.exception.RecipeNotFoundException;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RecipeService {
 	private final RecipeRepository recipeRepository;
+	private final RecipeSpecGenerator recipeSpecGenerator;
 
-	public RecipeService(RecipeRepository recipeRepository) {
+	public RecipeService(RecipeRepository recipeRepository, RecipeSpecGenerator recipeSpecGenerator) {
 		this.recipeRepository = recipeRepository;
+		this.recipeSpecGenerator = recipeSpecGenerator;
 	}
 
 	public Recipe addRecipe(Recipe recipe) {
+		if(recipe.getId() != null) {
+			throw new IllegalArgumentException("Recipe with an id can not be created");
+		}
+
 		return recipeRepository.save(recipe);
 	}
 
-	public Recipe updateRecipe(Long id, Recipe recipeDetails) {
+	public synchronized Recipe updateRecipe(Long id, Recipe recipeDetails) {
 		return recipeRepository.findById(id)
 				.map(recipe -> {
 					recipe.setName(recipeDetails.getName());
@@ -51,13 +51,17 @@ public class RecipeService {
 
 	public List<Recipe> searchRecipes(Boolean isVegetarian, Integer servings, String includeIngredient,
 									  String excludeIngredient, String instruction) {
+		boolean noValidFilter = isVegetarian == null
+				&& servings == null
+				&& includeIngredient == null
+				&& excludeIngredient == null
+				&& instruction == null;
+
+		if(noValidFilter){
+			throw new NoValidFilterException();
+		}
 		Specification<Recipe> filters =
-				Specification.where(isVegetarian == null ? null : vegetarian(isVegetarian))
-						.and(servings == null ? null : servingsTo(servings))
-						.and(StringUtils.isEmpty(includeIngredient) ? null : includedIngredients(List.of(includeIngredient)))
-						// TODO this is not working
-						.and(StringUtils.isEmpty(excludeIngredient) ? null : excludedIngredients(List.of(excludeIngredient)))
-						.and(StringUtils.isEmpty(instruction) ? null : instructionsLike(instruction));
+				recipeSpecGenerator.generateSpecs(isVegetarian, servings, includeIngredient, excludeIngredient, instruction);
 
 		return recipeRepository.findAll(filters);
 

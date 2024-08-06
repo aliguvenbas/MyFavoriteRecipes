@@ -7,9 +7,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.util.List;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 @Entity
-public class Recipe { // TODO can we do it a record????
+@Getter
+@AllArgsConstructor
+public class Recipe {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -22,44 +27,11 @@ public class Recipe { // TODO can we do it a record????
 	@ElementCollection
 	private Set<String> ingredients;
 
-	// Getters and Setters
-
 	public Recipe() {
 
 	}
 
-	public Recipe(String name, boolean isVegetarian, int servings, String instructions, Set<String> ingredients) {
-		this.name = name;
-		this.isVegetarian = isVegetarian;
-		this.servings = servings;
-		this.instructions = instructions;
-		this.ingredients = ingredients;
-	}
-
-
-	public Long getId() {
-		return id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public boolean isVegetarian() {
-		return isVegetarian;
-	}
-
-	public int getServings() {
-		return servings;
-	}
-
-	public String getInstructions() {
-		return instructions;
-	}
-
-	public Set<String> getIngredients() {
-		return ingredients;
-	}
+	// Id can be set/update during creation
 
 	public void setName(String name) {
 		this.name = name;
