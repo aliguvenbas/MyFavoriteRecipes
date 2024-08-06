@@ -20,6 +20,7 @@ import com.ag.myfavoriterecipes.model.Recipe;
 import com.ag.myfavoriterecipes.repository.RecipeRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -231,7 +232,7 @@ public class RecipeControllerIntegrationTest {
 
 		mockMvc.perform(post(TEST_URL_BASE + "/search")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(FilterDto.builder().includeIngredient("potato").build())))
+						.content(objectMapper.writeValueAsString(FilterDto.builder().includeIngredient(List.of("potato")).build())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", hasSize(2)))
 				.andExpect(jsonPath("$.content[0].name", anyOf(is("Vegetarian Sandwich"), is("Fried Potato"))))
@@ -256,7 +257,7 @@ public class RecipeControllerIntegrationTest {
 
 		mockMvc.perform(post(TEST_URL_BASE + "/search")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(FilterDto.builder().excludeIngredient("potato").build())))
+						.content(objectMapper.writeValueAsString(FilterDto.builder().excludeIngredient(List.of("potato")).build())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", hasSize(2)))
 				.andExpect(jsonPath("$.content[0].name", anyOf(is("Barbeque"), is("Tomato soup"))))

@@ -2,26 +2,25 @@ package com.ag.myfavoriterecipes.service;
 
 import com.ag.myfavoriterecipes.model.Recipe;
 import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 @Service
 public class RecipeSpecGenerator {
 
-	public Specification<Recipe> generateSpecs(Boolean isVegetarian, Integer servings, String includeIngredient,
-											   String excludeIngredient, String instruction) {
+	public Specification<Recipe> generateSpecs(Boolean isVegetarian, Integer servings, List<String> includeIngredient,
+											   List<String> excludeIngredient, String instruction) {
 		return Specification
 				.where(isVegetarian == null ? null : vegetarian(isVegetarian))
 				.and(servings == null ? null : servingsTo(servings))
-				.and(StringUtils.isEmpty(includeIngredient) ? null : includedIngredients(List.of(includeIngredient)))
-				.and(StringUtils.isEmpty(excludeIngredient) ? null : excludedIngredients(List.of(excludeIngredient)))
+				.and(CollectionUtils.isEmpty(includeIngredient) ? null : includedIngredients(includeIngredient))
+				.and(CollectionUtils.isEmpty(excludeIngredient) ? null : excludedIngredients(excludeIngredient))
 				.and(StringUtils.isEmpty(instruction) ? null : instructionsLike(instruction));
 	}
 

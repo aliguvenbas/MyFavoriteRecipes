@@ -12,6 +12,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.util.List;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.domain.Specification;
@@ -50,7 +51,7 @@ public class RecipeSpecGeneratorTest {
 
 	@Test
 	public void shouldGenerateSpecsForIncludeIngredientFilter() {
-		Specification<Recipe> spec = recipeSpecGenerator.generateSpecs(null, null, "Tomato", null, null);
+		Specification<Recipe> spec = recipeSpecGenerator.generateSpecs(null, null, List.of("Tomato"), null, null);
 		when(root.join("ingredients")).thenReturn(join);
 		when(builder.equal(join, "Tomato")).thenReturn(predicate);
 		when(builder.or(predicate)).thenReturn(predicate);
@@ -65,7 +66,7 @@ public class RecipeSpecGeneratorTest {
 	@Test
 	@Disabled
 	public void shouldGenerateSpecsForExcludeIngredientFilter() {
-		Specification<Recipe> spec = recipeSpecGenerator.generateSpecs(null, null, null, "Peanut", null);
+		Specification<Recipe> spec = recipeSpecGenerator.generateSpecs(null, null, null, List.of("Peanut"), null);
 		when(root.join("ingredients")).thenReturn(join);
 		when(builder.notEqual(join, "Peanut")).thenReturn(predicate);
 		when(builder.or(predicate)).thenReturn(predicate);
@@ -90,7 +91,7 @@ public class RecipeSpecGeneratorTest {
 	// Can be added more cases for this unit
 	@Test
 	public void shouldGenerateSpecsForMultipleFilters() {
-		Specification<Recipe> spec = recipeSpecGenerator.generateSpecs(true, 4, "Tomato", null, "Bake");
+		Specification<Recipe> spec = recipeSpecGenerator.generateSpecs(true, 4, List.of("Tomato"), null, "Bake");
 
 		when(builder.equal(root.get("isVegetarian"), true)).thenReturn(predicate);
 		when(builder.equal(root.get("servings"), 4)).thenReturn(predicate);
