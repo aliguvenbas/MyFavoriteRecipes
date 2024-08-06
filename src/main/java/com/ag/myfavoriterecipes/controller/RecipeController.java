@@ -11,6 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/recipes") // TODO naming
+@RequestMapping("/api/v1/recipes") // TODO naming
 public class RecipeController {
 	private final RecipeService recipeService;
 	private final RecipeDtoConverter recipeDtoConverter;
@@ -91,18 +94,14 @@ public class RecipeController {
 		}
 	}
 
-	//TODO pagination
 	@GetMapping
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", content =
 					{@Content(mediaType = "application/json", schema = @Schema(implementation = RecipeDto.class))}),
 			@ApiResponse(responseCode = "500", description = "Server error")})
-	public ResponseEntity<List<RecipeDto>> getAllRecipes() {
-		try {
-			return ResponseEntity.ok(recipeService.getAllRecipes().stream().map(recipeDtoConverter::toDto).toList());
-		} catch(Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
+	public ResponseEntity<Page<RecipeDto>> getAllRecipes(@PageableDefault(size = 10, page = 0) Pageable pageable) {
+		Page<RecipeDto> recipes = recipeService.getAllRecipes(pageable).map(recipeDtoConverter::toDto);
+		return ResponseEntity.ok(recipes);
 	}
 
 	@GetMapping("/search")
@@ -118,7 +117,7 @@ public class RecipeController {
 		try {
 			return ResponseEntity.ok(
 					recipeService.searchRecipes(vegetarian, servings, includeIngredient, excludeIngredient, instructions));
-		}catch(NoValidFilterException e) {
+		} catch(NoValidFilterException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		} catch(Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

@@ -5,6 +5,10 @@ import com.ag.myfavoriterecipes.repository.RecipeRepository;
 import com.ag.myfavoriterecipes.service.exception.NoValidFilterException;
 import com.ag.myfavoriterecipes.service.exception.RecipeNotFoundException;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -45,8 +49,8 @@ public class RecipeService {
 		recipeRepository.delete(recipe);
 	}
 
-	public List<Recipe> getAllRecipes() {
-		return recipeRepository.findAll();
+	public Page<Recipe> getAllRecipes(Pageable pageable) {
+		return recipeRepository.findAll(pageable);
 	}
 
 	public List<Recipe> searchRecipes(Boolean isVegetarian, Integer servings, String includeIngredient,

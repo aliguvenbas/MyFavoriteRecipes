@@ -1,10 +1,10 @@
 package com.ag.myfavoriterecipes.service;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
@@ -22,6 +22,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 public class RecipeServiceTest {
@@ -33,7 +37,12 @@ public class RecipeServiceTest {
 
 	@Test
 	public void shouldSaveRecipe() {
-		Recipe recipe = new Recipe(3L, "Test Recipe", true, 2, "Test Instructions", Set.of("Ingredient1", "Ingredient2"));
+		Recipe recipe = new Recipe();
+		recipe.setName("Test Recipe");
+		recipe.setVegetarian(true);
+		recipe.setServings(2);
+		recipe.setInstructions("Test Instructions");
+		recipe.setIngredients(Set.of("Ingredient1", "Ingredient2"));
 
 		when(recipeRepository.save(any(Recipe.class))).thenReturn(recipe);
 
@@ -112,19 +121,27 @@ public class RecipeServiceTest {
 	}
 
 	@Test
-	public void shouldGetAllRecipes() {
-		Recipe recipe1 = new Recipe(1L, "Recipe1", false, 0, null, null);
-		Recipe recipe2 = new Recipe(2L, "Recipe2", false, 0, null, null);
-		Recipe recipe3 = new Recipe(3L, "Recipe3", false, 0, null, null);
+	void shouldGetAllRecipesWithPagination() {
+		Recipe recipe1 = new Recipe();
+		recipe1.setName("Recipe 1");
 
-		when(recipeRepository.findAll()).thenReturn(List.of(recipe1, recipe2, recipe3));
+		Recipe recipe2 = new Recipe();
+		recipe2.setName("Recipe 2");
 
-		List<Recipe> recipes = recipeService.getAllRecipes();
+		Recipe recipe3 = new Recipe();
+		recipe3.setName("Recipe 3");
 
-		assertNotNull(recipes);
-		assertEquals(3, recipes.size());
+		Page<Recipe> pagedRecipes = new PageImpl<>(List.of(recipe1, recipe2, recipe3));
 
-		verify(recipeRepository, times(1)).findAll();
+		when(recipeRepository.findAll(any(Pageable.class))).thenReturn(pagedRecipes);
+
+		Pageable pageable = PageRequest.of(0, 1);
+		Page<Recipe> actualRecipes = recipeService.getAllRecipes(pageable);
+
+		assertNotNull(actualRecipes);
+		assertEquals(3, actualRecipes.getContent().size());
+
+		verify(recipeRepository, times(1)).findAll(pageable);
 	}
 
 	@Test

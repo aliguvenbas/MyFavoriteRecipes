@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -41,7 +41,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ActiveProfiles("test")
 public class RecipeControllerIntegrationTest {
 
-	private static final String TEST_URL_BASE = "/api/recipes";
+	private static final String TEST_URL_BASE = "/api/v1/recipes";
 
 	@Container
 	public static MySQLContainer<?> mysqlContainer = new MySQLContainer<>("mysql:latest")
@@ -193,28 +193,37 @@ public class RecipeControllerIntegrationTest {
 	}
 
 	@Test
-	void shouldGetAllRecipes() throws Exception {
+	void shouldGetAllRecipesWithPagination() throws Exception {
 		Recipe recipe1 = new Recipe();
 		recipe1.setName("Recipe 1");
 		recipe1.setVegetarian(true);
 		recipe1.setServings(4);
-		recipe1.setInstructions("Instructions 1");
 		recipe1.setIngredients(Set.of("ingredient1", "ingredient2"));
 
 		Recipe recipe2 = new Recipe();
 		recipe2.setName("Recipe 2");
 		recipe2.setVegetarian(false);
 		recipe2.setServings(2);
-		recipe2.setInstructions("Instructions 2");
 		recipe2.setIngredients(Set.of("ingredient3", "ingredient4"));
 
-		recipeRepository.saveAll(Arrays.asList(recipe1, recipe2));
+		Recipe recipe3 = new Recipe();
+		recipe3.setName("Recipe 3");
+		recipe3.setVegetarian(true);
+		recipe3.setServings(6);
+		recipe3.setIngredients(Set.of("ingredient5", "ingredient6"));
 
-		mockMvc.perform(get(TEST_URL_BASE))
+		recipeRepository.saveAll(Arrays.asList(recipe1, recipe2, recipe3));
+
+		mockMvc.perform(get(TEST_URL_BASE + "?page=0&size=2"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(2)))
-				.andExpect(jsonPath("$[0].name", is("Recipe 1")))
-				.andExpect(jsonPath("$[1].name", is("Recipe 2")));
+				.andExpect(jsonPath("$.content", hasSize(2)))
+				.andExpect(jsonPath("$.content[0].name", is("Recipe 1")))
+				.andExpect(jsonPath("$.content[1].name", is("Recipe 2")));
+
+		mockMvc.perform(get(TEST_URL_BASE + "?page=1&size=2"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", hasSize(1)))
+				.andExpect(jsonPath("$.content[0].name", is("Recipe 3")));
 	}
 
 	@Test

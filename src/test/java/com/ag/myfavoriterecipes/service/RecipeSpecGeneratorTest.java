@@ -19,7 +19,6 @@ import org.springframework.data.jpa.domain.Specification;
 public class RecipeSpecGeneratorTest {
 
 	private final RecipeSpecGenerator recipeSpecGenerator = new RecipeSpecGenerator();
-	;
 
 	private Root<Recipe> root = mock(Root.class);
 	private CriteriaQuery<?> query = mock(CriteriaQuery.class);

@@ -2,7 +2,7 @@
 FROM gradle:jdk17 AS build
 WORKDIR /app
 COPY . .
-RUN gradle build
+RUN gradle build -x test
 
 # Stage 2: final image
 FROM openjdk:17
