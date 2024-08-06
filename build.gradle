@@ -30,8 +30,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'org.mockito:mockito-core'
 
-	testImplementation 'org.testcontainers:junit-jupiter'
-	// https://mvnrepository.com/artifact/org.testcontainers/mysql
+	testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.20.1'
 	testImplementation 'org.testcontainers:mysql:1.19.8'
 }
 

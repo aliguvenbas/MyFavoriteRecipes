@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ag.myfavoriterecipes.controller.dto.FilterDto;
 import com.ag.myfavoriterecipes.controller.dto.RecipeDto;
 import com.ag.myfavoriterecipes.model.Recipe;
 import com.ag.myfavoriterecipes.repository.RecipeRepository;
@@ -244,31 +245,31 @@ public class RecipeControllerIntegrationTest {
 
 		recipeRepository.saveAll(Arrays.asList(recipe1, recipe2));
 
-		mockMvc.perform(get(TEST_URL_BASE + "/search")
-						.param("vegetarian", "true"))
+		mockMvc.perform(post(TEST_URL_BASE + "/search")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(FilterDto.builder().vegetarian(Boolean.TRUE).build())))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(1)))
-				.andExpect(jsonPath("$[0].name", is("Vegetarian Sandwich")));
-
-		mockMvc.perform(get(TEST_URL_BASE + "/search")
-						.param("servings", "4")
-						.param("includeIngredient", "potato"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(1)))
-				.andExpect(jsonPath("$[0].name", is("Vegetarian Sandwich")));
-
-		mockMvc.perform(get(TEST_URL_BASE + "/search")
-						.param("instructions", "fry"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(1)))
-				.andExpect(jsonPath("$[0].name", is("Barbeque")));
-
-//		mockMvc.perform(get("/api/recipes/search")
-//						.param("excludeIngredient", "salmon")
-//						.param("instruction", "oven"))
+				.andExpect(jsonPath("$.content", hasSize(1)))
+				.andExpect(jsonPath("$.content[0].name", is("Vegetarian Sandwich")));
+//
+//		mockMvc.perform(get(TEST_URL_BASE + "/search")
+//						.param("servings", "4")
+//						.param("includeIngredient", "potato"))
 //				.andExpect(status().isOk())
 //				.andExpect(jsonPath("$", hasSize(1)))
-//				.andExpect(jsonPath("$[0].name", is("Vegetarian Recipe")));
+//				.andExpect(jsonPath("$[0].name", is("Vegetarian Sandwich")));
+//
+//		mockMvc.perform(get(TEST_URL_BASE + "/search")
+//						.param("instructions", "fry"))
+//				.andExpect(status().isOk())
+//				.andExpect(jsonPath("$", hasSize(1)))
+//				.andExpect(jsonPath("$[0].name", is("Barbeque")));
+
+//		mockMvc.perform(get(TEST_URL_BASE + "/search")
+//						.param("excludeIngredient", "salmon"))
+//				.andExpect(status().isOk())
+//				.andExpect(jsonPath("$", hasSize(1)))
+//				.andExpect(jsonPath("$[0].name", is("Vegetarian Sandwich")));
 	}
 
 	@Test

@@ -149,14 +149,17 @@ public class RecipeServiceTest {
 		Recipe nonVegetarianRecipe = new Recipe(2L, "Non-V Recipe", false, 0, null, null);
 
 		when(recipeSpecGenerator.generateSpecs(eq(Boolean.FALSE), eq(null), eq(null), eq(null), eq(null))).thenReturn(specification);
-		when(recipeRepository.findAll(any(Specification.class))).thenReturn(List.of(nonVegetarianRecipe));
+		Page<Recipe> pagedRecipes = new PageImpl<>(List.of(nonVegetarianRecipe));
+		when(recipeRepository.findAll(any(Specification.class))).thenReturn(List.of(pagedRecipes));
 
-		List<Recipe> actualRecipes = recipeService.searchRecipes(Boolean.FALSE,
+		Pageable pageable = PageRequest.of(0, 1);
+
+		Page<Recipe> actualRecipes = recipeService.searchRecipes(pageable, Boolean.FALSE,
 				null, null, null, null);
 
-		assertEquals(1, actualRecipes.size());
-		assertFalse(actualRecipes.get(0).isVegetarian());
-		assertEquals("Non-V Recipe", actualRecipes.get(0).getName());
+		assertEquals(1, actualRecipes.getContent().size());
+		assertFalse(actualRecipes.getContent().get(0).isVegetarian());
+		assertEquals("Non-V Recipe", actualRecipes.getContent().get(0).getName());
 
 		verify(recipeSpecGenerator, times(1)).generateSpecs(eq(Boolean.FALSE), any(), any(), any(), any());
 		verify(recipeRepository, times(1)).findAll(any(Specification.class));
@@ -164,6 +167,6 @@ public class RecipeServiceTest {
 
 	@Test
 	public void shouldThrowExceptionIfThereIsNoAnyFilterDuringSearch() {
-		assertThrows(NoValidFilterException.class, () -> recipeService.searchRecipes(null, null, null, null, null));
+		assertThrows(NoValidFilterException.class, () -> recipeService.searchRecipes(null, null, null, null, null, null));
 	}
 }

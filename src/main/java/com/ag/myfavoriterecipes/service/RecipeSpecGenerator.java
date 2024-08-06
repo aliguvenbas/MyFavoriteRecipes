@@ -17,7 +17,6 @@ public class RecipeSpecGenerator {
 				.where(isVegetarian == null ? null : vegetarian(isVegetarian))
 				.and(servings == null ? null : servingsTo(servings))
 				.and(StringUtils.isEmpty(includeIngredient) ? null : includedIngredients(List.of(includeIngredient)))
-				// TODO this is not working
 				.and(StringUtils.isEmpty(excludeIngredient) ? null : excludedIngredients(List.of(excludeIngredient)))
 				.and(StringUtils.isEmpty(instruction) ? null : instructionsLike(instruction));
 	}
@@ -47,7 +46,7 @@ public class RecipeSpecGenerator {
 			Predicate[] predicates = ingredients.stream()
 					.map(ingredient -> builder.notEqual(ingredientsJoin, ingredient))
 					.toArray(Predicate[]::new);
-			return builder.or(predicates).not();
+			return builder.and(predicates);
 		};
 	}
 

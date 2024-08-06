@@ -4,11 +4,8 @@ import com.ag.myfavoriterecipes.model.Recipe;
 import com.ag.myfavoriterecipes.repository.RecipeRepository;
 import com.ag.myfavoriterecipes.service.exception.NoValidFilterException;
 import com.ag.myfavoriterecipes.service.exception.RecipeNotFoundException;
-import java.util.List;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -53,7 +50,7 @@ public class RecipeService {
 		return recipeRepository.findAll(pageable);
 	}
 
-	public List<Recipe> searchRecipes(Boolean isVegetarian, Integer servings, String includeIngredient,
+	public Page<Recipe> searchRecipes(Pageable pageable, Boolean isVegetarian, Integer servings, String includeIngredient,
 									  String excludeIngredient, String instruction) {
 		boolean noValidFilter = isVegetarian == null
 				&& servings == null
@@ -61,13 +58,13 @@ public class RecipeService {
 				&& excludeIngredient == null
 				&& instruction == null;
 
-		if(noValidFilter){
+		if(noValidFilter) {
 			throw new NoValidFilterException();
 		}
 		Specification<Recipe> filters =
 				recipeSpecGenerator.generateSpecs(isVegetarian, servings, includeIngredient, excludeIngredient, instruction);
 
-		return recipeRepository.findAll(filters);
+		return recipeRepository.findAll(filters, pageable);
 
 	}
 }
