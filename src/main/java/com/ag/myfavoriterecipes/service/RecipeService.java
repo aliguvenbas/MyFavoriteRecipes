@@ -65,6 +65,5 @@ public class RecipeService {
 				recipeSpecGenerator.generateSpecs(isVegetarian, servings, includeIngredient, excludeIngredient, instruction);
 
 		return recipeRepository.findAll(filters, pageable);
-
 	}
 }

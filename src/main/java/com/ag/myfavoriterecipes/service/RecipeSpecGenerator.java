@@ -2,8 +2,12 @@ package com.ag.myfavoriterecipes.service;
 
 import com.ag.myfavoriterecipes.model.Recipe;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -12,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class RecipeSpecGenerator {
 
 	public Specification<Recipe> generateSpecs(Boolean isVegetarian, Integer servings, String includeIngredient,
-									  String excludeIngredient, String instruction) {
+											   String excludeIngredient, String instruction) {
 		return Specification
 				.where(isVegetarian == null ? null : vegetarian(isVegetarian))
 				.and(servings == null ? null : servingsTo(servings))
@@ -39,14 +43,15 @@ public class RecipeSpecGenerator {
 		};
 	}
 
-	//TODO unit tests
 	private Specification<Recipe> excludedIngredients(final List<String> ingredients) {
 		return (root, query, builder) -> {
-			Join<Recipe, String> ingredientsJoin = root.join("ingredients");
-			Predicate[] predicates = ingredients.stream()
-					.map(ingredient -> builder.notEqual(ingredientsJoin, ingredient))
-					.toArray(Predicate[]::new);
-			return builder.and(predicates);
+			Subquery<Long> subquery = query.subquery(Long.class);
+			Root<Recipe> subRoot = subquery.from(Recipe.class);
+			Join<Recipe, String> subIngredients = subRoot.join("ingredients");
+
+			subquery.select(subRoot.get("id")).where(subIngredients.in(ingredients));
+
+			return builder.not(root.get("id").in(subquery));
 		};
 	}
 

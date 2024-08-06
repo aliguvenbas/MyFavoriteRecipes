@@ -156,7 +156,6 @@ public class RecipeServiceTest {
 	public void shouldSearchRecipes() {
 		Recipe nonVegetarianRecipe = new RecipeTestBuilder().withIsVegetarian(false).withName("Non-V Recipe").build();
 
-
 		when(recipeSpecGenerator.generateSpecs(eq(Boolean.FALSE), eq(null), eq(null), eq(null), eq(null))).thenReturn(specification);
 		Page<Recipe> pagedRecipes = new PageImpl<>(List.of(nonVegetarianRecipe));
 		when(recipeRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(pagedRecipes);
