@@ -31,7 +31,7 @@ public class Recipe {
 
 	}
 
-	// Id can be set/update during creation
+	// Id can be set only in creation
 
 	public void setName(String name) {
 		this.name = name;

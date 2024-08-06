@@ -274,7 +274,9 @@ public class RecipeControllerIntegrationTest {
 
 	@Test
 	void shouldReturnBadRequestIfNoFilterSpecifiedDuringSearchFunction() throws Exception {
-		mockMvc.perform(get(TEST_URL_BASE + "/search"))
+		mockMvc.perform(post(TEST_URL_BASE + "/search")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(FilterDto.builder().build())))
 				.andExpect(status().isBadRequest());
 	}
 }

@@ -14,6 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.ag.myfavoriterecipes.builders.RecipeTestBuilder;
 import com.ag.myfavoriterecipes.model.Recipe;
 import com.ag.myfavoriterecipes.repository.RecipeRepository;
 import com.ag.myfavoriterecipes.service.exception.NoValidFilterException;
@@ -37,12 +38,13 @@ public class RecipeServiceTest {
 
 	@Test
 	public void shouldSaveRecipe() {
-		Recipe recipe = new Recipe();
-		recipe.setName("Test Recipe");
-		recipe.setVegetarian(true);
-		recipe.setServings(2);
-		recipe.setInstructions("Test Instructions");
-		recipe.setIngredients(Set.of("Ingredient1", "Ingredient2"));
+		Recipe recipe = new RecipeTestBuilder()
+				.withName("Test Recipe")
+				.withIsVegetarian(true)
+				.withServings(2)
+				.withInstructions("Test Instructions")
+				.withIngredient(Set.of("Ingredient1", "Ingredient2"))
+				.build();
 
 		when(recipeRepository.save(any(Recipe.class))).thenReturn(recipe);
 
@@ -61,7 +63,7 @@ public class RecipeServiceTest {
 
 	@Test
 	public void shouldThrowErrorIfRecipeHasIdDuringCreate() {
-		Recipe recipe = new Recipe(3L, "Test Recipe", true, 2, "Test Instructions", Set.of("Ingredient1", "Ingredient2"));
+		Recipe recipe = new RecipeTestBuilder().withId(3L).build();
 
 		assertThrows(IllegalArgumentException.class, () -> recipeService.addRecipe(recipe));
 
@@ -70,15 +72,26 @@ public class RecipeServiceTest {
 
 	@Test
 	public void shouldUpdateRecipe() {
-		Recipe existingRecipe = new Recipe(1L, "Test Recipe", true, 2, "Test Instructions", Set.of("Ingredient1", "Ingredient2"));
+		Recipe existingRecipe = new RecipeTestBuilder()
+				.withName("Test Recipe")
+				.withIsVegetarian(true)
+				.withServings(2)
+				.withInstructions("Test Instructions")
+				.withIngredient(Set.of("Ingredient1", "Ingredient2"))
+				.build();
 
-		Recipe updatedDetails =
-				new Recipe(1L, "Updated Recipe", false, 2, "Updated Instructions", Set.of("UpdatedIngredient1", "UpdatedIngredient2"));
+		Recipe updatedRecipeDetails = new RecipeTestBuilder()
+				.withName("Updated Recipe")
+				.withIsVegetarian(false)
+				.withServings(2)
+				.withInstructions("Updated Instructions")
+				.withIngredient(Set.of("UpdatedIngredient1", "UpdatedIngredient2"))
+				.build();
 
 		when(recipeRepository.findById(1L)).thenReturn(Optional.of(existingRecipe));
 		when(recipeRepository.save(any(Recipe.class))).thenReturn(existingRecipe);
 
-		Recipe updatedRecipe = recipeService.updateRecipe(1L, updatedDetails);
+		Recipe updatedRecipe = recipeService.updateRecipe(1L, updatedRecipeDetails);
 
 		assertNotNull(updatedRecipe);
 		assertEquals("Updated Recipe", updatedRecipe.getName());
@@ -93,16 +106,14 @@ public class RecipeServiceTest {
 
 	@Test
 	public void shouldThrowExceptionIfRecipeWithGivenIdNotExistDuringUpdate() {
-		Recipe updatedDetails = new Recipe(1L, "Updated Recipe", false, 0, null, null);
-
 		when(recipeRepository.findById(1L)).thenReturn(Optional.empty());
 
-		assertThrows(RecipeNotFoundException.class, () -> recipeService.updateRecipe(1L, updatedDetails));
+		assertThrows(RecipeNotFoundException.class, () -> recipeService.updateRecipe(1L, new RecipeTestBuilder().build()));
 	}
 
 	@Test
 	public void shouldDeleteRecipe() {
-		Recipe recipe = new Recipe(1L, "Deleted Recipe", false, 0, null, null);
+		Recipe recipe = new RecipeTestBuilder().withId(1L).build();
 
 		when(recipeRepository.findById(1L)).thenReturn(Optional.of(recipe));
 		doNothing().when(recipeRepository).delete(recipe);
@@ -122,14 +133,11 @@ public class RecipeServiceTest {
 
 	@Test
 	void shouldGetAllRecipesWithPagination() {
-		Recipe recipe1 = new Recipe();
-		recipe1.setName("Recipe 1");
+		Recipe recipe1 = new RecipeTestBuilder().withName("Recipe 1").build();
 
-		Recipe recipe2 = new Recipe();
-		recipe2.setName("Recipe 2");
+		Recipe recipe2 = new RecipeTestBuilder().withName("Recipe 2").build();
 
-		Recipe recipe3 = new Recipe();
-		recipe3.setName("Recipe 3");
+		Recipe recipe3 = new RecipeTestBuilder().withName("Recipe 3").build();
 
 		Page<Recipe> pagedRecipes = new PageImpl<>(List.of(recipe1, recipe2, recipe3));
 
@@ -146,11 +154,12 @@ public class RecipeServiceTest {
 
 	@Test
 	public void shouldSearchRecipes() {
-		Recipe nonVegetarianRecipe = new Recipe(2L, "Non-V Recipe", false, 0, null, null);
+		Recipe nonVegetarianRecipe = new RecipeTestBuilder().withIsVegetarian(false).withName("Non-V Recipe").build();
+
 
 		when(recipeSpecGenerator.generateSpecs(eq(Boolean.FALSE), eq(null), eq(null), eq(null), eq(null))).thenReturn(specification);
 		Page<Recipe> pagedRecipes = new PageImpl<>(List.of(nonVegetarianRecipe));
-		when(recipeRepository.findAll(any(Specification.class))).thenReturn(List.of(pagedRecipes));
+		when(recipeRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(pagedRecipes);
 
 		Pageable pageable = PageRequest.of(0, 1);
 
@@ -162,7 +171,7 @@ public class RecipeServiceTest {
 		assertEquals("Non-V Recipe", actualRecipes.getContent().get(0).getName());
 
 		verify(recipeSpecGenerator, times(1)).generateSpecs(eq(Boolean.FALSE), any(), any(), any(), any());
-		verify(recipeRepository, times(1)).findAll(any(Specification.class));
+		verify(recipeRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
 	}
 
 	@Test
