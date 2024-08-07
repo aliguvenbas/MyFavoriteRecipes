@@ -4,9 +4,9 @@
       * docker-compose down && docker-compose build --no-cache && docker-compose up
       * it would be nice to check is containers are up and running
       -> docker ps
-                  CONTAINER ID   IMAGE                                     STATUS         PORTS                               NAMES
-                  ***            myfavoriterecipes-myfavoriterecipes-api   Up 2 minutes   0.0.0.0:8080->8080/tcp              myfavoriterecipes-api
-                  ***            mysql                                     Up 2 minutes   0.0.0.0:3306->3306/tcp, 33060/tcp   mysqldb
+          CONTAINER ID   IMAGE                                     PORTS                               NAMES
+          ***            myfavoriterecipes-myfavoriterecipes-api   0.0.0.0:8080->8080/tcp              myfavoriterecipes-api
+          ***            mysql                                     0.0.0.0:3306->3306/tcp, 33060/tcp   mysqldb
 - You may enter to the database container by using this command
       -> docker exec -it mysqldb mysql -u root -p
       -> password equals to MYSQL_ROOT_PASSWORD
